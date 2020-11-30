@@ -18,21 +18,41 @@ public class Throttler implements Closeable {
 
     private final ScheduledExecutorService ses;
 
-    private Runnable refiller(final int msgsPerInterval) {
+    /**
+     * Refill method for the leaky bucket algorithm
+     *
+     * @param msgsPerInterval
+     * @return
+     */
+    private Runnable refill(final int msgsPerInterval) {
         return () -> {
-            semaphore.drainPermits(); // remove permits from previous intervall
-            semaphore.release(msgsPerInterval); // set permits for the next intervall
+            // Remove any left-over permits from previous interval
+            semaphore.drainPermits();
+            // Fill the leaky bucket with new permits to be used during the next interval
+            semaphore.release(msgsPerInterval);
         };
     }
 
+    /**
+     * Factory method, allows creation of a Throttler which will process
+     * {@code msgsPerInterval} messages every {@code intervalUnits}
+     * {@code intervalUnit}, for example 5 messages per 3 seconds
+     *
+     * @param msgsPerInterval
+     * @param intervalUnits
+     * @param intervalUnit
+     * @return
+     */
     public static Throttler build(final int msgsPerInterval, final int intervalUnits, final TimeUnit intervalUnit) {
         return new Throttler(msgsPerInterval, intervalUnits, intervalUnit);
     }
 
     private Throttler(final int msgsPerInterval, final int intervalUnits, final TimeUnit intervalUnit) {
         semaphore = new Semaphore(msgsPerInterval);
+        // We always need a free executor thread for the refiller, hence the +1
         ses = Executors.newScheduledThreadPool(msgsPerInterval + 1);
-        ses.scheduleAtFixedRate(refiller(msgsPerInterval), intervalUnits, intervalUnits, intervalUnit);
+        // Schedule the refill for the leaky bucket
+        ses.scheduleAtFixedRate(refill(msgsPerInterval), intervalUnits, intervalUnits, intervalUnit);
     }
 
     @Override
@@ -40,6 +60,12 @@ public class Throttler implements Closeable {
         ses.shutdown();
     }
 
+    /**
+     * Submit a message for processing
+     *
+     * @param msg
+     * @throws InterruptedException
+     */
     public void submit(String msg) throws InterruptedException {
         semaphore.acquire();
         ses.execute(
