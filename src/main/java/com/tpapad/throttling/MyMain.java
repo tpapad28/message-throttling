@@ -11,12 +11,19 @@ import java.util.concurrent.TimeUnit;
 public class MyMain {
 
     public static void main(String[] args) throws InterruptedException {
-        try ( Throttler throttler = Throttler.build(5, 1, TimeUnit.SECONDS)) {
+        try ( Throttler throttler = Throttler.build(8, 1, TimeUnit.SECONDS, new SimpleThrottlingBuffer())) {
+            throttler.start();
             for (int i = 0; i < 50; i++) {
                 final String msg = "MSG#" + i;
                 System.out.println("Submitted " + msg + " at " + LocalTime.now().toString());
                 throttler.submit(msg);
             }
+
+            while (!throttler.isEmpty()) {
+                // This sleep() is just for demo purposes...
+                Thread.sleep(1_000);
+            }
+            throttler.stop();
         }
     }
 }
