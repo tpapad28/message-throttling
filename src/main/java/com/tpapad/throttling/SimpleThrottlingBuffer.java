@@ -31,4 +31,16 @@ public class SimpleThrottlingBuffer<T extends Serializable> implements Throttlin
         queue.add(new ThrottledEntity<>(entity));
     }
 
+    @Override
+    public void saveState() {
+        // NOOP
+        // TODO: Save queue contents on disk
+    }
+
+    @Override
+    public void restoreState() {
+        // NOOP
+        // TODO: Load state from disk into queue
+    }
+
 }

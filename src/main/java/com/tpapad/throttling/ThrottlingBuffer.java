@@ -16,4 +16,8 @@ public interface ThrottlingBuffer<T extends Serializable> {
 
     void add(T entity);
 
+    void saveState();
+
+    void restoreState();
+
 }

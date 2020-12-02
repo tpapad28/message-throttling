@@ -73,6 +73,7 @@ public class Throttler<T extends Serializable> implements Closeable {
     }
 
     public void start() {
+        buffer.restoreState();
         final Runnable worker = () -> {
             System.out.println("Starting worker thread...");
             while (true) {
@@ -109,6 +110,7 @@ public class Throttler<T extends Serializable> implements Closeable {
 
     public void stop() {
         workerThread.interrupt();
+        buffer.saveState();
     }
 
     /**
