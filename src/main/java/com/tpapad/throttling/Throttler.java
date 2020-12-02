@@ -38,23 +38,7 @@ public class Throttler<T extends Serializable> implements Closeable {
         };
     }
 
-    /**
-     * Factory method, allows creation of a Throttler which will process
-     * {@code msgsPerInterval} messages every {@code intervalUnits}
-     * {@code intervalUnit}, for example 5 messages per 3 seconds
-     *
-     * @param msgsPerInterval
-     * @param intervalUnits
-     * @param intervalUnit
-     * @param buffer
-     * @return
-     */
-    public static Throttler build(final int msgsPerInterval, final int intervalUnits, final TimeUnit intervalUnit, final ThrottlingBuffer buffer) {
-        return new Throttler(msgsPerInterval, intervalUnits, intervalUnit, buffer);
-    }
-
     private Throttler(final int msgsPerInterval, final int intervalUnits, final TimeUnit intervalUnit, final ThrottlingBuffer<T> buffer) {
-        // TODO: Replace with builder ^^
         this.buffer = buffer;
         semaphore = new Semaphore(msgsPerInterval);
         // We always need a free executor thread for the refiller, hence the +1
@@ -122,4 +106,48 @@ public class Throttler<T extends Serializable> implements Closeable {
     public void submit(T msg) {
         buffer.add(msg);
     }
+
+    /**
+     * Allows creation of a Throttler which will process {@code msgsPerInterval}
+     * messages every {@code intervalUnits} {@code intervalUnit}, for example 5
+     * messages per 3 seconds
+     *
+     * @param <T>
+     */
+    public static class ThrottlerBuilder<T extends Serializable> {
+
+        private int msgsPerInterval;
+        private int intervalUnits = 1;
+        private TimeUnit intervalUnit;
+        private ThrottlingBuffer<T> buffer;
+
+        public ThrottlerBuilder() {
+        }
+
+        public ThrottlerBuilder<T> withMsgsPerInterval(int msgsPerInterval) {
+            this.msgsPerInterval = msgsPerInterval;
+            return this;
+        }
+
+        public ThrottlerBuilder<T> withIntervalUnits(int intervalUnits) {
+            this.intervalUnits = intervalUnits;
+            return this;
+        }
+
+        public ThrottlerBuilder<T> withIntervalUnit(TimeUnit intervalUnit) {
+            this.intervalUnit = intervalUnit;
+            return this;
+        }
+
+        public ThrottlerBuilder<T> withBuffer(ThrottlingBuffer<T> buffer) {
+            this.buffer = buffer;
+            return this;
+        }
+
+        public Throttler<T> build() {
+            return new Throttler<>(msgsPerInterval, intervalUnits, intervalUnit, buffer);
+        }
+
+    }
+
 }

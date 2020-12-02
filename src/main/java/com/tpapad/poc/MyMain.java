@@ -1,6 +1,9 @@
 
-package com.tpapad.throttling;
+package com.tpapad.poc;
 
+import com.tpapad.throttling.SimpleThrottlingBuffer;
+import com.tpapad.throttling.Throttler;
+import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
 
@@ -11,7 +14,14 @@ import java.util.concurrent.TimeUnit;
 public class MyMain {
 
     public static void main(String[] args) throws InterruptedException {
-        try ( Throttler throttler = Throttler.build(8, 1, TimeUnit.SECONDS, new SimpleThrottlingBuffer())) {
+
+        try (final Throttler<Serializable> throttler = new Throttler.ThrottlerBuilder<>()
+                .withMsgsPerInterval(8)
+                .withIntervalUnits(1)
+                .withIntervalUnit(TimeUnit.SECONDS)
+                .withBuffer(new SimpleThrottlingBuffer<>())
+                .build()) {
+
             throttler.start();
             for (int i = 0; i < 50; i++) {
                 final String msg = "MSG#" + i;
@@ -20,7 +30,7 @@ public class MyMain {
             }
 
             while (!throttler.isEmpty()) {
-                // This sleep() is just for demo purposes...
+                // This sleep() is just for demo purposes; nobody sleeps on production code
                 Thread.sleep(1_000);
             }
             throttler.stop();
