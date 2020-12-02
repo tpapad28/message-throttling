@@ -25,3 +25,8 @@ hs_err_pid*
 
 # Netbeans files
 nbactions.xml
+
+#Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
