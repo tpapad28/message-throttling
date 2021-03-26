@@ -1,6 +1,6 @@
 # message-throttling
 
-Throttle message delivery from multiple sources using a fixed rate
+Throttle message delivery from multiple sources using a fixed rate. Read more at https://dzone.com/articles/message-throttling-implementation-with-buffering
 
 ## Description
 
